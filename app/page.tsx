@@ -658,6 +658,24 @@ export default function Page() {
     setItems((prev) => prev.map((item) => ({ ...item, sel: selected })));
   };
 
+  const renderBillHeader = () => (
+    <div className="company-header">
+      <div className="logo-box">
+        <div className="company-logo-placeholder">
+          <span>KD</span>
+        </div>
+      </div>
+
+      <div className="company-meta">
+        <h2 className="company-name">{shop || 'KAYS DIAMONDS'}</h2>
+        <div className="company-info-line">G-1111, Surat Diamond Bourse, Surat, Gujarat, 395007</div>
+        <div className="company-info-line">Contact: +91 823 7682001</div>
+        <div className="company-info-line">GSTIN: 24EEFPG4417A1Z5</div>
+        <div className="company-info-line website">website: <a href="https://www.kaysdiamonds.com" target="_blank" rel="noreferrer">www.kaysdiamonds.com</a></div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <style jsx>{`
@@ -804,6 +822,125 @@ export default function Page() {
           .bar { display: none !important; }
           .bill { border: 0 !important; background: #fff !important; }
           .bill, .bill * { color: #000 !important; }
+        }
+
+        .company-header {
+          display: grid;
+          grid-template-columns: 180px minmax(0, 1fr);
+          align-items: center;
+          gap: 18px;
+          border: 2px solid #000;
+          border-bottom: 0;
+          padding: 18px 20px 12px;
+          background: #f7f7f7;
+        }
+        .logo-box {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 140px;
+        }
+        .company-logo {
+          width: 140px;
+          height: 140px;
+          object-fit: contain;
+          display: block;
+        }
+        .logo-placeholder {
+          width: 140px;
+          height: 140px;
+          border: 2px dashed #3f3f3f;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #333;
+          font-weight: 700;
+          text-align: center;
+          padding: 10px;
+          background: #fff;
+        }
+        .company-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
+        }
+        .company-name {
+          font-size: clamp(2rem, 3vw, 4rem);
+          font-weight: 900;
+          letter-spacing: 1px;
+          margin: 0;
+          line-height: 1.05;
+          text-transform: uppercase;
+        }
+        .company-info-line {
+          font-size: 17px;
+          color: #111;
+          line-height: 1.35;
+          font-weight: 500;
+        }
+        .company-info-line.website {
+          color: #0d3cdd;
+          font-weight: 700;
+        }
+        .company-info-line a {
+          color: #0d3cdd;
+          text-decoration: none;
+        }
+        .invoice-banner {
+          background: #d9d9d9;
+          border: 2px solid #000;
+          border-top: 0;
+          border-bottom: 0;
+          text-align: center;
+          font-weight: 900;
+          font-size: 18px;
+          letter-spacing: 0.08em;
+          padding: 10px 12px;
+          text-transform: uppercase;
+        }
+        .invoice-detail-box {
+          border: 2px solid #000;
+          border-top: 0;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          background: #fff;
+        }
+        .detail-panel {
+          padding: 18px 20px;
+          min-height: 180px;
+        }
+        .detail-panel + .detail-panel {
+          border-left: 2px solid #000;
+        }
+        .detail-panel h3 {
+          font-size: 18px;
+          margin: 0 0 18px;
+          font-weight: 800;
+          text-transform: none;
+        }
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 12px;
+          font-size: 18px;
+          font-weight: 700;
+        }
+        .detail-row span:first-child {
+          font-weight: 700;
+        }
+        .detail-row span:last-child {
+          font-weight: 700;
+          text-align: right;
+        }
+        .detail-label {
+          font-weight: 700;
+        }
+        .detail-value {
+          font-weight: 700;
         }
       `}</style>
 
@@ -1029,6 +1166,8 @@ export default function Page() {
               <div className="empty">Tick items above and they will be listed here.</div>
             ) : (
               <>
+                {renderBillHeader()}
+
                 <div className="bill-head">
                   <div>
                     <label className="field" style={{ minWidth: 220 }}>
