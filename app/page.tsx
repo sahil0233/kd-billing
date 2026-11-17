@@ -45,6 +45,10 @@ const STORAGE_KEYS = {
   markup: 'markup',
   gst: 'gst',
   shop: 'shop',
+  phone: 'phone',
+  address: 'address',
+  email: 'email',
+  dueDate: 'dueDate',
 } as const;
 
 function toNum(s: string | number | null | undefined): number {
@@ -366,6 +370,10 @@ export default function Page() {
   const [cust, setCust] = useState('');
   const [billno, setBillno] = useState('');
   const [date, setDate] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [email, setEmail] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [showPhoto, setShowPhoto] = useState(true);
   const [showWt, setShowWt] = useState(true);
   const [showDia, setShowDia] = useState(true);
@@ -374,8 +382,6 @@ export default function Page() {
   const [statusErr, setStatusErr] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [copyFallbackText, setCopyFallbackText] = useState('');
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fallbackRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -383,18 +389,30 @@ export default function Page() {
     const savedMarkup = load(STORAGE_KEYS.markup);
     const savedGst = load(STORAGE_KEYS.gst);
     const savedShop = load(STORAGE_KEYS.shop);
+    const savedPhone = load(STORAGE_KEYS.phone);
+    const savedAddress = load(STORAGE_KEYS.address);
+    const savedEmail = load(STORAGE_KEYS.email);
+    const savedDueDate = load(STORAGE_KEYS.dueDate);
 
     setDate(getTodayInputDate());
     setMarkup(parseStoredNumber(savedMarkup));
     setGstPct(parseStoredNumber(savedGst));
     if (savedShop) setShop(savedShop);
+    if (savedPhone) setPhone(savedPhone);
+    if (savedAddress) setAddress(savedAddress);
+    if (savedEmail) setEmail(savedEmail);
+    if (savedDueDate) setDueDate(savedDueDate);
   }, []);
 
   useEffect(() => {
     store(STORAGE_KEYS.markup, String(markup));
     store(STORAGE_KEYS.gst, String(gstPct));
     if (shop) store(STORAGE_KEYS.shop, shop);
-  }, [markup, gstPct, shop]);
+    if (phone) store(STORAGE_KEYS.phone, phone);
+    if (address) store(STORAGE_KEYS.address, address);
+    if (email) store(STORAGE_KEYS.email, email);
+    if (dueDate) store(STORAGE_KEYS.dueDate, dueDate);
+  }, [markup, gstPct, shop, phone, address, email, dueDate]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -574,35 +592,6 @@ export default function Page() {
     `;
   };
 
-  const handleBillPreview = () => {
-    if (!picked.length) {
-      setStatus('Tick at least one item first.');
-      setStatusErr(true);
-      return;
-    }
-
-    setPreviewHtml(buildBillHtml());
-    setIsPreviewOpen(true);
-  };
-
-  const handleDownloadBill = () => {
-    if (!picked.length) {
-      setStatus('Tick at least one item first.');
-      setStatusErr(true);
-      return;
-    }
-
-    const blob = new Blob([buildBillHtml()], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `${(shop || 'customer-bill').replace(/\s+/g, '-').toLowerCase()}.html`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setStatus('Customer bill downloaded.');
-    setStatusErr(false);
-  };
-
   const handleCopyRows = async () => {
     if (!picked.length) {
       setStatus('Tick at least one item first.');
@@ -659,300 +648,82 @@ export default function Page() {
   };
 
   const renderBillHeader = () => (
-    <div className="company-header">
-      <div className="logo-box">
-        <div className="company-logo-placeholder">
-          <span>KD</span>
+    <div className="w-full overflow-hidden border-[3px] border-black bg-white">
+      <div className="grid grid-cols-[180px_minmax(0,1fr)] items-center gap-6 border-b-[3px] border-black bg-[#f7f7f7] px-5 py-4">
+        <div className="flex items-center justify-center">
+          <img src="/kd-logo.png" alt="Kays Diamonds logo" className="h-[140px] w-[140px] object-contain" />
+        </div>
+
+        <div className="min-w-0">
+          <h2 className="text-[clamp(2rem,3vw,4rem)] font-black uppercase tracking-tight text-black">{shop || 'KAYS DIAMONDS'}</h2>
+          <div className="mt-2 text-lg font-medium text-black">G-1111, Surat Diamond Bourse, Surat, Gujarat, 395007</div>
+          <div className="mt-1 text-lg font-medium text-black">Contact: +91 823 7682001</div>
+          <div className="mt-1 text-lg font-medium text-black">GSTIN: 24EEFPG4417A1Z5</div>
+          <div className="mt-2 text-lg font-bold text-blue-700 underline decoration-blue-700 underline-offset-2">
+            website: <a href="https://www.kaysdiamonds.com" target="_blank" rel="noreferrer" className="text-blue-700">www.kaysdiamonds.com</a>
+          </div>
         </div>
       </div>
 
-      <div className="company-meta">
-        <h2 className="company-name">{shop || 'KAYS DIAMONDS'}</h2>
-        <div className="company-info-line">G-1111, Surat Diamond Bourse, Surat, Gujarat, 395007</div>
-        <div className="company-info-line">Contact: +91 823 7682001</div>
-        <div className="company-info-line">GSTIN: 24EEFPG4417A1Z5</div>
-        <div className="company-info-line website">website: <a href="https://www.kaysdiamonds.com" target="_blank" rel="noreferrer">www.kaysdiamonds.com</a></div>
+      <div className="bg-[#d9d9d9] border-b-[3px] border-black px-3 py-3 text-center text-3xl font-black uppercase tracking-[0.08em] text-black">
+        Invoice
+      </div>
+
+      <div className="grid grid-cols-2 border-b-[3px] border-black bg-white">
+        <div className="border-r-[3px] border-black p-5">
+          <h3 className="mb-5 text-2xl font-extrabold text-black">Client Details</h3>
+          <div className="space-y-4 text-xl font-bold text-black">
+            <div className="flex items-center justify-between gap-4">
+              <span>Client Name:</span>
+              <input type="text" value={cust} onChange={(e) => setCust(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" placeholder="CG" />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>Phone:</span>
+              <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" placeholder="Phone" />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>Address:</span>
+              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" placeholder="Address" />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>Email id:</span>
+              <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" placeholder="Email" />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <h3 className="mb-5 text-2xl font-extrabold text-black">Invoice Details</h3>
+          <div className="space-y-4 text-xl font-bold text-black">
+            <div className="flex items-center justify-between gap-4">
+              <span>Inv No.:</span>
+              <input type="text" value={billno} onChange={(e) => setBillno(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" placeholder="26 27 9071" />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>Date:</span>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span>Due Date:</span>
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-2/3 rounded border border-slate-300 bg-white px-2 py-1 text-right text-base font-semibold text-slate-800 outline-none focus:border-teal-500" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
     <>
-      <style jsx>{`
-        :root {
-          --bg: #f4f6f6;
-          --surface: #ffffff;
-          --fg: #182022;
-          --muted: #5a6a6d;
-          --line: #d9e1e2;
-          --accent: #0e6a65;
-          --accent-fg: #ffffff;
-          --accent-soft: #e0f1ef;
-          --photo-bg: #ffffff;
-          --danger: #a3361f;
-        }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; }
-        body {
-          font-family: Inter, system-ui, sans-serif;
-          background: var(--bg);
-          color: var(--fg);
-        }
-        .wrap {
-          max-width: 1080px;
-          margin: 0 auto;
-          padding: 24px 16px 96px;
-        }
-        h1, h2, h3 { margin: 0; font-family: 'Space Grotesk', 'Inter', sans-serif; }
-        .lede { color: var(--muted); margin-top: 8px; }
-        .step { display: flex; flex-direction: column; gap: 14px; }
-        .drop {
-          display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 18px; border: 1.5px dashed var(--line); border-radius: 12px; background: var(--surface);
-        }
-        .drop.over { border-color: var(--accent); background: var(--accent-soft); }
-        .drop strong { font-size: 16px; }
-        .drop .grow { flex: 1 1 260px; }
-        .drop .sub { color: var(--muted); font-size: 13.5px; }
-        .btn {
-          border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 500; cursor: pointer;
-        }
-        .btn:hover { border-color: var(--accent); }
-        .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
-        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
-        .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--muted); font-size: 12.5px; }
-        .search { flex: 1 1 200px; }
-        .small { width: 120px; }
-        input[type='text'], input[type='number'], input[type='search'], input[type='date'] {
-          background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%;
-        }
-        input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--accent); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
-        .card {
-          background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;
-        }
-        .card.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-        .pick { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; font-weight: 600; border-bottom: 1px solid var(--line); }
-        .ph { background: var(--photo-bg); aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; }
-        .ph img { width: 100%; height: 100%; object-fit: contain; display: block; }
-        .meta { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .meta h3 { font-size: 17px; }
-        .desc { color: var(--muted); font-size: 13.5px; margin: 0; }
-        .facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-size: 13px; }
-        .facts dt { color: var(--muted); }
-        .facts dd { margin: 0; text-align: right; }
-        .ctl { display: none; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 4px; }
-        .card.on .ctl { display: grid; }
-        .chip { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
-        .setup { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-        .toggles { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13.5px; }
-        .toggles label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .hint { color: var(--muted); font-size: 13px; margin: 0; }
-        .section-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
-        .section-head p { margin: 0; color: var(--muted); font-size: 13.5px; }
-        .bill { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; min-width: 0; }
-        .bill-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; padding-bottom: 14px; border-bottom: 2px solid var(--fg); }
-        .bill-head h2 { font-size: 22px; }
-        .bill-head .r { text-align: right; font-size: 13.5px; }
-        .bill-head .to { margin-top: 4px; color: var(--muted); font-size: 14px; }
-        .bill-wide { overflow-x: auto; margin-top: 4px; }
-        table.lines { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
-        table.lines th { text-align: left; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 10px 8px; border-bottom: 1px solid var(--line); font-weight: 600; }
-        table.lines td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-        table.lines .r { text-align: right; }
-        table.lines td.pic { width: 110px; }
-        table.lines td.pic img { width: 100px; height: 72px; object-fit: contain; background: var(--photo-bg); display: block; border-radius: 4px; }
-        .d { font-weight: 600; }
-        .s { color: var(--muted); font-size: 12.5px; }
-        .totals { margin-left: auto; width: min(320px, 100%); padding-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-        .totals div { display: flex; justify-content: space-between; gap: 12px; }
-        .totals .grand { font-size: 20px; font-weight: 700; border-top: 2px solid var(--fg); padding-top: 8px; margin-top: 4px; }
-        .empty { padding: 28px 12px; text-align: center; color: var(--muted); }
-        .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
-        .bar-in { max-width: 1080px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .bar b { font-size: 18px; }
-        #status { font-size: 13.5px; min-height: 20px; }
-        #status.err { color: var(--danger); }
-        #fallback { width: 100%; min-height: 110px; font: 12px/1.4 ui-monospace, Menlo, monospace; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px; color: var(--fg); }
-        .preview-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(10, 15, 18, 0.55);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          z-index: 50;
-        }
-        .preview-modal {
-          width: min(980px, 100%);
-          max-height: 90vh;
-          background: var(--surface);
-          border: 1px solid var(--line);
-          border-radius: 16px;
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
-          overflow: hidden;
-        }
-        .preview-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 16px 20px;
-          border-bottom: 1px solid var(--line);
-        }
-        .preview-header h3 { font-size: 18px; }
-        .preview-frame {
-          width: 100%;
-          height: 70vh;
-          border: 0;
-          background: #fff;
-        }
-        .preview-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          padding: 16px 20px;
-          border-top: 1px solid var(--line);
-          background: #fafbfb;
-        }
-        @media (max-width: 700px) { .ctl { grid-template-columns: 1fr; } }
-        @media print {
-          body { background: #fff; }
-          .bar { display: none !important; }
-          .bill { border: 0 !important; background: #fff !important; }
-          .bill, .bill * { color: #000 !important; }
-        }
-
-        .company-header {
-          display: grid;
-          grid-template-columns: 180px minmax(0, 1fr);
-          align-items: center;
-          gap: 18px;
-          border: 2px solid #000;
-          border-bottom: 0;
-          padding: 18px 20px 12px;
-          background: #f7f7f7;
-        }
-        .logo-box {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 140px;
-        }
-        .company-logo {
-          width: 140px;
-          height: 140px;
-          object-fit: contain;
-          display: block;
-        }
-        .logo-placeholder {
-          width: 140px;
-          height: 140px;
-          border: 2px dashed #3f3f3f;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          color: #333;
-          font-weight: 700;
-          text-align: center;
-          padding: 10px;
-          background: #fff;
-        }
-        .company-meta {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          min-width: 0;
-        }
-        .company-name {
-          font-size: clamp(2rem, 3vw, 4rem);
-          font-weight: 900;
-          letter-spacing: 1px;
-          margin: 0;
-          line-height: 1.05;
-          text-transform: uppercase;
-        }
-        .company-info-line {
-          font-size: 17px;
-          color: #111;
-          line-height: 1.35;
-          font-weight: 500;
-        }
-        .company-info-line.website {
-          color: #0d3cdd;
-          font-weight: 700;
-        }
-        .company-info-line a {
-          color: #0d3cdd;
-          text-decoration: none;
-        }
-        .invoice-banner {
-          background: #d9d9d9;
-          border: 2px solid #000;
-          border-top: 0;
-          border-bottom: 0;
-          text-align: center;
-          font-weight: 900;
-          font-size: 18px;
-          letter-spacing: 0.08em;
-          padding: 10px 12px;
-          text-transform: uppercase;
-        }
-        .invoice-detail-box {
-          border: 2px solid #000;
-          border-top: 0;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          background: #fff;
-        }
-        .detail-panel {
-          padding: 18px 20px;
-          min-height: 180px;
-        }
-        .detail-panel + .detail-panel {
-          border-left: 2px solid #000;
-        }
-        .detail-panel h3 {
-          font-size: 18px;
-          margin: 0 0 18px;
-          font-weight: 800;
-          text-transform: none;
-        }
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 12px;
-          font-size: 18px;
-          font-weight: 700;
-        }
-        .detail-row span:first-child {
-          font-weight: 700;
-        }
-        .detail-row span:last-child {
-          font-weight: 700;
-          text-align: right;
-        }
-        .detail-label {
-          font-weight: 700;
-        }
-        .detail-value {
-          font-weight: 700;
-        }
-      `}</style>
-
-      <div className="wrap">
-        <header>
-          <h1>Jewel Bill Builder</h1>
-          <p className="lede">Upload the manufacturer&apos;s invoice PDF. Every item shows with its photo. Tick the pieces you are selling, set your price, and the customer bill builds itself.</p>
+      <div className="mx-auto max-w-[1080px] px-4 pb-24 pt-6">
+        <header className="mb-6">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-black">Jewel Bill Builder</h1>
+          <p className="mt-2 text-sm text-slate-600">Upload the manufacturer&apos;s invoice PDF. Every item shows with its photo. Tick the pieces you are selling, set your price, and the customer bill builds itself.</p>
         </header>
 
-        <section className="step">
+        <section className="mb-8 space-y-4">
           <div
-            className={`drop ${isDragging ? 'over' : ''}`}
+            className={`flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 ${isDragging ? 'border-teal-500 bg-teal-50' : ''}`}
             onDragEnter={(e) => {
               e.preventDefault();
               setIsDragging(true);
@@ -972,9 +743,9 @@ export default function Page() {
               handleFiles(e.dataTransfer.files);
             }}
           >
-            <div className="grow">
-              <strong>1. Add the manufacturer&apos;s PDF</strong>
-              <div className="sub">Drop one or more PDFs here. They are read inside your browser and are not uploaded anywhere.</div>
+            <div className="min-w-[220px] flex-1">
+              <strong className="block text-base font-semibold text-slate-900">1. Add the manufacturer&apos;s PDF</strong>
+              <div className="text-sm text-slate-500">Drop one or more PDFs here. They are read inside your browser and are not uploaded anywhere.</div>
             </div>
             <input
               ref={fileInputRef}
@@ -989,115 +760,66 @@ export default function Page() {
                 e.target.value = '';
               }}
             />
-            <button className="btn primary" type="button" onClick={() => fileInputRef.current?.click()}>Choose PDF</button>
-            <button className="btn" type="button" onClick={clearAllItems}>Clear all items</button>
+            <button className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-medium text-slate-800 transition hover:border-teal-500 hover:text-teal-700" type="button" onClick={() => fileInputRef.current?.click()}>Choose PDF</button>
+            <button className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-medium text-slate-800 transition hover:border-teal-500 hover:text-teal-700" type="button" onClick={clearAllItems}>Clear all items</button>
           </div>
-          <div id="status" className={statusErr ? 'err' : ''}>{status}</div>
+          <div id="status" className={`text-sm ${statusErr ? 'text-red-700' : 'text-slate-600'}`}>{status}</div>
         </section>
 
-        <section className="step">
-          <div className="section-head">
-            <h2>2. Tick the items for this bill</h2>
-            <p>{items.length ? `${picked.length} ticked · ${filteredItems.length} of ${items.length} shown` : ''}</p>
+        <section className="mb-8 space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-2xl font-black text-slate-900">2. Tick the items for this bill</h2>
+            <p className="text-sm text-slate-500">{items.length ? `${picked.length} ticked · ${filteredItems.length} of ${items.length} shown` : ''}</p>
           </div>
 
-          <div className="toolbar">
-            <label className="field search">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="min-w-[220px] flex-1 text-xs font-medium uppercase tracking-wide text-slate-500">
               Search
-              <input type="search" placeholder="Design code or type, e.g. ring" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input type="search" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" placeholder="Design code or type, e.g. ring" value={search} onChange={(e) => setSearch(e.target.value)} />
             </label>
-            <label className="field small">
+            <label className="w-[120px] text-xs font-medium uppercase tracking-wide text-slate-500">
               Markup %
-              <input
-                type="number"
-                min="0"
-                step="0.5"
-                value={markup}
-                onChange={(e) => {
-                  const v = Math.max(0, Number.parseFloat(e.target.value) || 0);
-                  setMarkup(v);
-                  store(STORAGE_KEYS.markup, String(v));
-                }}
-              />
+              <input type="number" min="0" step="0.5" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" value={markup} onChange={(e) => { const v = Math.max(0, Number.parseFloat(e.target.value) || 0); setMarkup(v); store(STORAGE_KEYS.markup, String(v)); }} />
             </label>
-            <button className="btn" type="button" onClick={() => setAllSelected(true)}>Tick all shown</button>
-            <button className="btn" type="button" onClick={() => setAllSelected(false)}>Untick all</button>
+            <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:border-teal-500 hover:text-teal-700" type="button" onClick={() => setAllSelected(true)}>Tick all shown</button>
+            <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:border-teal-500 hover:text-teal-700" type="button" onClick={() => setAllSelected(false)}>Untick all</button>
           </div>
 
-          <div className="grid">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {items.length === 0 ? (
-              <div className="empty" style={{ gridColumn: '1 / -1' }}>No items yet. Add a manufacturer PDF above and its items will appear here with their photos.</div>
+              <div className="col-span-full rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">No items yet. Add a manufacturer PDF above and its items will appear here with their photos.</div>
             ) : (
               filteredItems.map((it) => (
-                <article key={it.id} className={`card${it.sel ? ' on' : ''}`} data-id={it.id}>
-                  <label className="pick">
-                    <input
-                      type="checkbox"
-                      className="sel"
-                      checked={it.sel}
-                      onChange={(e) => updateItem(it.id, { sel: e.target.checked })}
-                    />
+                <article key={it.id} className={`overflow-hidden rounded-xl border bg-white ${it.sel ? 'border-teal-500 shadow-sm ring-1 ring-teal-500' : 'border-slate-200'}`} data-id={it.id}>
+                  <label className="flex cursor-pointer items-center gap-3 border-b border-slate-200 px-3 py-2 font-semibold text-slate-800">
+                    <input type="checkbox" checked={it.sel} onChange={(e) => updateItem(it.id, { sel: e.target.checked })} className="h-4 w-4 accent-teal-600" />
                     <span>Add to bill</span>
                   </label>
-                  <div className="ph">
-                    {it.img ? <img alt={it.design || it.itemCode} src={it.img} /> : <span>No photo found</span>}
+                  <div className="flex h-40 items-center justify-center bg-white">
+                    {it.img ? <img alt={it.design || it.itemCode} src={it.img} className="h-full w-full object-contain" /> : <span className="text-sm text-slate-500">No photo found</span>}
                   </div>
-                  <div className="meta">
+                  <div className="space-y-3 p-3">
                     <div>
-                      <h3>
-                        {it.design || it.itemCode}
-                        {it.sample ? <span className="chip">Sample</span> : null}
-                      </h3>
-                      <p className="desc">
-                        {it.description}
-                        {it.kt ? ` · ${it.kt}` : ''}
-                      </p>
+                      <h3 className="text-lg font-bold text-slate-900">{it.design || it.itemCode}{it.sample ? <span className="ml-2 inline-block rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-700">Sample</span> : null}</h3>
+                      <p className="mt-1 text-sm text-slate-500">{it.description}{it.kt ? ` · ${it.kt}` : ''}</p>
                     </div>
-                    <dl className="facts num">
-                      <dt>Net weight</dt>
-                      <dd>{it.nwt.toFixed(3)} g</dd>
-                      <dt>Diamond</dt>
-                      <dd>{it.dPcs ? `${it.dPcs} pcs · ${it.dWt.toFixed(3)} ct` : 'none'}</dd>
-                      <dt>Manufacturer price</dt>
-                      <dd>
-                        {inr(it.amount)}
-                        {it.qty > 1 ? ` for ${it.qty}` : ''}
-                      </dd>
-                      {it.billNo ? (
-                        <>
-                          <dt>Invoice</dt>
-                          <dd>{it.billNo}</dd>
-                        </>
-                      ) : null}
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm text-slate-700">
+                      <dt className="text-slate-500">Net weight</dt>
+                      <dd className="text-right font-medium">{it.nwt.toFixed(3)} g</dd>
+                      <dt className="text-slate-500">Diamond</dt>
+                      <dd className="text-right font-medium">{it.dPcs ? `${it.dPcs} pcs · ${it.dWt.toFixed(3)} ct` : 'none'}</dd>
+                      <dt className="text-slate-500">Manufacturer price</dt>
+                      <dd className="text-right font-medium">{inr(it.amount)}{it.qty > 1 ? ` for ${it.qty}` : ''}</dd>
+                      {it.billNo ? (<><dt className="text-slate-500">Invoice</dt><dd className="text-right font-medium">{it.billNo}</dd></>) : null}
                     </dl>
-                    <div className="ctl">
-                      <label className="field">
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                      <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
                         Qty
-                        <input
-                          type="number"
-                          className="bq"
-                          min="1"
-                          step="1"
-                          value={it.bq}
-                          onChange={(e) => {
-                            const nextQty = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
-                            updateItem(it.id, { bq: nextQty });
-                          }}
-                        />
+                        <input type="number" min="1" step="1" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" value={it.bq} onChange={(e) => { const nextQty = Math.max(1, Number.parseInt(e.target.value, 10) || 1); updateItem(it.id, { bq: nextQty }); }} />
                       </label>
-                      <label className="field">
+                      <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
                         Your price each (₹)
-                        <input
-                          type="number"
-                          className="pr"
-                          min="0"
-                          step="1"
-                          value={unitPrice(it)}
-                          onChange={(e) => {
-                            const value = Number.parseFloat(e.target.value);
-                            updateItem(it.id, { price: Number.isNaN(value) ? null : Math.max(0, value) });
-                          }}
-                        />
+                        <input type="number" min="0" step="1" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" value={unitPrice(it)} onChange={(e) => { const value = Number.parseFloat(e.target.value); updateItem(it.id, { price: Number.isNaN(value) ? null : Math.max(0, value) }); }} />
                       </label>
                     </div>
                   </div>
@@ -1107,167 +829,110 @@ export default function Page() {
           </div>
         </section>
 
-        <section className="step" id="billSec">
-          <div className="section-head">
-            <h2>3. Customer bill</h2>
-            <p>Prices start from the manufacturer&apos;s amount plus your markup. Change any price on its card.</p>
+        <section className="mb-8 space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-2xl font-black text-slate-900">3. Customer bill</h2>
+            <p className="text-sm text-slate-500">Prices start from the manufacturer&apos;s amount plus your markup. Change any price on its card.</p>
           </div>
 
-          <div className="setup">
-            <label className="field">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
               Your shop name
-              <input type="text" placeholder="Shop name" value={shop} onChange={(e) => { setShop(e.target.value); store(STORAGE_KEYS.shop, e.target.value); }} />
+              <input type="text" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" placeholder="Shop name" value={shop} onChange={(e) => { setShop(e.target.value); store(STORAGE_KEYS.shop, e.target.value); }} />
             </label>
-            <label className="field">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
               Customer
-              <input type="text" placeholder="Customer name" value={cust} onChange={(e) => setCust(e.target.value)} />
+              <input type="text" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" placeholder="Customer name" value={cust} onChange={(e) => setCust(e.target.value)} />
             </label>
-            <label className="field">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
               Bill no.
-              <input type="text" placeholder="e.g. 101" value={billno} onChange={(e) => setBillno(e.target.value)} />
+              <input type="text" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" placeholder="e.g. 101" value={billno} onChange={(e) => setBillno(e.target.value)} />
             </label>
-            <label className="field">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
               Date
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" value={date} onChange={(e) => setDate(e.target.value)} />
             </label>
-            <label className="field">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
               GST %
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={gstPct}
-                onChange={(e) => {
-                  const v = Math.max(0, Number.parseFloat(e.target.value) || 0);
-                  setGstPct(v);
-                  store(STORAGE_KEYS.gst, String(v));
-                }}
-              />
+              <input type="number" min="0" step="0.1" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-500" value={gstPct} onChange={(e) => { const v = Math.max(0, Number.parseFloat(e.target.value) || 0); setGstPct(v); store(STORAGE_KEYS.gst, String(v)); }} />
             </label>
           </div>
 
-          <div className="toggles">
-            <label><input type="checkbox" checked={showPhoto} onChange={(e) => setShowPhoto(e.target.checked)} /> Photos</label>
-            <label><input type="checkbox" checked={showWt} onChange={(e) => setShowWt(e.target.checked)} /> Karat and net weight</label>
-            <label><input type="checkbox" checked={showDia} onChange={(e) => setShowDia(e.target.checked)} /> Diamond details</label>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2"><input type="checkbox" checked={showPhoto} onChange={(e) => setShowPhoto(e.target.checked)} className="h-4 w-4 accent-teal-600" /> Photos</label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={showWt} onChange={(e) => setShowWt(e.target.checked)} className="h-4 w-4 accent-teal-600" /> Karat and net weight</label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={showDia} onChange={(e) => setShowDia(e.target.checked)} className="h-4 w-4 accent-teal-600" /> Diamond details</label>
           </div>
 
-          <div className="actions">
-            <button className="btn primary" type="button" onClick={handleCopyRows}>Copy rows for Google Sheets</button>
-            <button className="btn" type="button" onClick={handleBillPreview}>Preview bill</button>
-            <button className="btn" type="button" onClick={handleDownloadBill}>Download bill</button>
-            <p className="hint">To print or save as PDF, use your browser&apos;s print (Ctrl+P, or Cmd+P on Mac). Only the bill is printed.</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <button className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800" type="button" onClick={handleCopyRows}>Copy rows for Google Sheets</button>
           </div>
 
-          <textarea ref={fallbackRef} id="fallback" hidden readOnly value={copyFallbackText} onChange={(e) => setCopyFallbackText(e.target.value)} />
+          <textarea ref={fallbackRef} className="hidden w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-800" readOnly value={copyFallbackText} onChange={(e) => setCopyFallbackText(e.target.value)} />
 
-          <article className="bill" id="bill">
+          <article className="overflow-hidden border-[3px] border-black bg-white" id="print-invoice">
             {picked.length === 0 ? (
-              <div className="empty">Tick items above and they will be listed here.</div>
+              <div className="p-10 text-center text-slate-500">Tick items above and they will be listed here.</div>
             ) : (
               <>
                 {renderBillHeader()}
 
-                <div className="bill-head">
-                  <div>
-                    <label className="field" style={{ minWidth: 220 }}>
-                      <span>Shop name</span>
-                      <input type="text" value={shop} onChange={(e) => setShop(e.target.value)} />
-                    </label>
-                    <div className="to">Estimate for</div>
-                    <label className="field" style={{ minWidth: 220, marginTop: 6 }}>
-                      <span>Customer</span>
-                      <input type="text" value={cust} onChange={(e) => setCust(e.target.value)} />
-                    </label>
-                  </div>
-                  <div className="r num">
-                    <label className="field" style={{ minWidth: 150, textAlign: 'left' }}>
-                      <span>Bill no.</span>
-                      <input type="text" value={billno} onChange={(e) => setBillno(e.target.value)} />
-                    </label>
-                    <label className="field" style={{ minWidth: 150, marginTop: 8, textAlign: 'left' }}>
-                      <span>Date</span>
-                      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="bill-wide">
-                  <table className="lines">
+                <div className="overflow-x-auto border-t-[3px] border-black bg-white">
+                  <table className="min-w-[640px] w-full border-collapse text-sm text-slate-800">
                     <thead>
-                      <tr>
-                        <th>#</th>
-                        {showPhoto ? <th>Photo</th> : null}
-                        <th>Item</th>
-                        {showWt ? <th className="r">Net wt (g)</th> : null}
-                        {showDia ? <th className="r">Diamond</th> : null}
-                        <th className="r">Qty</th>
-                        <th className="r">Rate</th>
-                        <th className="r">Amount</th>
+                      <tr className="border-b border-slate-300 bg-slate-100 text-left text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600">
+                        <th className="px-3 py-3">#</th>
+                        {showPhoto ? <th className="px-3 py-3">Photo</th> : null}
+                        <th className="px-3 py-3">Item</th>
+                        {showWt ? <th className="px-3 py-3 text-right">Net wt (g)</th> : null}
+                        {showDia ? <th className="px-3 py-3 text-right">Diamond</th> : null}
+                        <th className="px-3 py-3 text-right">Qty</th>
+                        <th className="px-3 py-3 text-right">Rate</th>
+                        <th className="px-3 py-3 text-right">Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       {picked.map((it, n) => (
-                        <tr key={it.id}>
-                          <td className="num">{n + 1}</td>
-                          {showPhoto ? <td className="pic">{it.img ? <img alt="" src={it.img} /> : null}</td> : null}
-                          <td>
-                            <div className="d">{it.design || it.itemCode}</div>
-                            <div className="s">
+                        <tr key={it.id} className="border-b border-slate-200 align-top">
+                          <td className="px-3 py-3 font-medium">{n + 1}</td>
+                          {showPhoto ? <td className="px-3 py-3"><div className="h-[72px] w-[100px] overflow-hidden rounded bg-white">{it.img ? <img alt="" src={it.img} className="h-full w-full object-contain" /> : null}</div></td> : null}
+                          <td className="px-3 py-3">
+                            <div className="font-bold text-slate-900">{it.design || it.itemCode}</div>
+                            <div className="mt-1 text-xs text-slate-500">
                               {it.description}
                               {showWt && it.kt ? ` · ${it.kt}` : ''}
                             </div>
                           </td>
-                          {showWt ? <td className="r num">{it.nwt.toFixed(3)}</td> : null}
+                          {showWt ? <td className="px-3 py-3 text-right font-medium">{it.nwt.toFixed(3)}</td> : null}
                           {showDia ? (
-                            <td className="r num">
+                            <td className="px-3 py-3 text-right font-medium">
                               {it.dPcs ? (
                                 <>
                                   {it.dPcs} pcs
-                                  <div className="s">{it.dWt.toFixed(3)} ct</div>
+                                  <div className="text-xs text-slate-500">{it.dWt.toFixed(3)} ct</div>
                                 </>
                               ) : (
                                 '—'
                               )}
                             </td>
                           ) : null}
-                          <td className="r num">
-                            <input
-                              type="number"
-                              min="1"
-                              step="1"
-                              value={it.bq}
-                              onChange={(e) => {
-                                const nextQty = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
-                                updateItem(it.id, { bq: nextQty });
-                              }}
-                              style={{ width: 72 }}
-                            />
+                          <td className="px-3 py-3 text-right font-medium">
+                            <input type="number" min="1" step="1" value={it.bq} onChange={(e) => { const nextQty = Math.max(1, Number.parseInt(e.target.value, 10) || 1); updateItem(it.id, { bq: nextQty }); }} className="w-20 rounded border border-slate-200 bg-white px-2 py-1 text-right text-sm text-slate-800 outline-none transition focus:border-teal-500" />
                           </td>
-                          <td className="r num">
-                            <input
-                              type="number"
-                              min="0"
-                              step="1"
-                              value={unitPrice(it)}
-                              onChange={(e) => {
-                                const value = Number.parseFloat(e.target.value);
-                                updateItem(it.id, { price: Number.isNaN(value) ? null : Math.max(0, value) });
-                              }}
-                              style={{ width: 96 }}
-                            />
+                          <td className="px-3 py-3 text-right font-medium">
+                            <input type="number" min="0" step="1" value={unitPrice(it)} onChange={(e) => { const value = Number.parseFloat(e.target.value); updateItem(it.id, { price: Number.isNaN(value) ? null : Math.max(0, value) }); }} className="w-24 rounded border border-slate-200 bg-white px-2 py-1 text-right text-sm text-slate-800 outline-none transition focus:border-teal-500" />
                           </td>
-                          <td className="r num">{inr(lineAmt(it))}</td>
+                          <td className="px-3 py-3 text-right font-medium">{inr(lineAmt(it))}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="totals num">
-                  <div><span>Subtotal</span><span>{inr(totals.sub)}</span></div>
-                  {gstPct > 0 ? <div><span>GST {gstPct}%</span><span>{inr(totals.gst)}</span></div> : null}
-                  <div className="grand"><span>Total</span><span>{inr(totals.total)}</span></div>
+                <div className="ml-auto mt-4 w-full max-w-[320px] space-y-2 px-3 pb-5 pt-2 text-base text-slate-800">
+                  <div className="flex items-center justify-between"><span>Subtotal</span><span>{inr(totals.sub)}</span></div>
+                  {gstPct > 0 ? <div className="flex items-center justify-between"><span>GST {gstPct}%</span><span>{inr(totals.gst)}</span></div> : null}
+                  <div className="flex items-center justify-between border-t border-black pt-2 text-lg font-black"><span>Total</span><span>{inr(totals.total)}</span></div>
                 </div>
               </>
             )}
@@ -1275,29 +940,13 @@ export default function Page() {
         </section>
       </div>
 
-      <div className="bar">
-        <div className="bar-in">
+      <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-3 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-3 text-sm text-slate-700">
           <div>
-            <span>{selectedCount} item{selectedCount === 1 ? '' : 's'}</span> &middot; <b className="num">{inr(totals.total)}</b>
+            <span>{selectedCount} item{selectedCount === 1 ? '' : 's'}</span> &middot; <b className="font-black text-slate-900">{inr(totals.total)}</b>
           </div>
         </div>
       </div>
-
-      {isPreviewOpen ? (
-        <div className="preview-backdrop" onClick={() => setIsPreviewOpen(false)}>
-          <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="preview-header">
-              <h3>Customer bill preview</h3>
-              <button className="btn" type="button" onClick={() => setIsPreviewOpen(false)}>Close</button>
-            </div>
-            <iframe title="Customer bill preview" srcDoc={previewHtml} className="preview-frame" />
-            <div className="preview-actions">
-              <button className="btn" type="button" onClick={() => setIsPreviewOpen(false)}>Back</button>
-              <button className="btn primary" type="button" onClick={handleDownloadBill}>Download</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 }
