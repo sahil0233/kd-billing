@@ -49,12 +49,33 @@ a {
     left: 0;
     top: 0;
     width: 100%;
+    max-width: none;
     background: #fff;
     color: #000;
+    overflow: visible !important;
+  }
+
+  #print-invoice table {
+    width: 100% !important;
+  }
+
+  #print-invoice input {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  #print-invoice img {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  #print-invoice tr {
+    break-inside: avoid;
   }
 
   @page {
-    size: A4;
-    margin: 10mm;
+    size: A4 landscape;
+    margin: 6mm;
   }
 }
